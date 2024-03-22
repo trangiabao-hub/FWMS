@@ -1,0 +1,14 @@
+.login {
+  //   background-color: yellow;
+  width: 100%;
+  display: flex;
+  justify-content: end;
+  height: 500px;
+  h1 {
+    margin-bottom: 40px;
+  }
+  &__form {
+    // background-color: blue;
+    width: 40%;
+  }
+}
