@@ -142,6 +142,8 @@ const Dashboard = () => {
             minHeight: 280,
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
+            maxHeight: "100%",
+            overflow: "auto",
           }}
         >
           <Outlet />

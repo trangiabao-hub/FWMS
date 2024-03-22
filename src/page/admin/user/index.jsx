@@ -4,11 +4,13 @@ import {
   Form,
   Input,
   Modal,
+  Popconfirm,
   Row,
   Select,
   Table,
   Upload,
 } from "antd";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Option } from "antd/es/mentions";
 import { useEffect, useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
@@ -71,6 +73,33 @@ export const ManageUser = () => {
       key: "dateUpdate",
       render: (value) => {
         return formatDistance(new Date(value), new Date(), { addSuffix: true });
+      },
+    },
+    {
+      title: "Action",
+      dataIndex: "id",
+      key: "id",
+      render: (value) => {
+        return (
+          <>
+            <Popconfirm
+              placement="rightBottom"
+              title="Delete the order"
+              description="Are you sure to delete this order?"
+              icon={<QuestionCircleOutlined style={{ color: "red" }} />}
+              onConfirm={async () => {
+                await api.delete(`/user/${value}`).then(() => {
+                  toast.success("User deleted");
+                  fetchUser();
+                });
+              }}
+            >
+              <Button danger type="primary">
+                Delete
+              </Button>
+            </Popconfirm>
+          </>
+        );
       },
     },
   ];

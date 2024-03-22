@@ -1,10 +1,12 @@
-import { Button, Form, Modal, Table, Upload } from "antd";
+import { Button, Form, Modal, Popconfirm, Table, Upload } from "antd";
 import { useEffect, useState } from "react";
 import api from "../../../config/axios";
 import { formatDistance } from "date-fns";
 import { useForm } from "antd/es/form/Form";
 import { UploadOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
+import "./index.css";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 export const ManagePurchaseOrder = () => {
   const [orders, serOrders] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -18,6 +20,7 @@ export const ManagePurchaseOrder = () => {
         return {
           ...item,
           user: user.name,
+          key: item.id,
         };
       })
     );
@@ -105,6 +108,33 @@ export const ManagePurchaseOrder = () => {
         );
       },
     },
+    {
+      title: "Action",
+      dataIndex: "id",
+      key: "id",
+      render: (value) => {
+        return (
+          <>
+            <Popconfirm
+              placement="rightBottom"
+              title="Delete the order"
+              description="Are you sure to delete this order?"
+              icon={<QuestionCircleOutlined style={{ color: "red" }} />}
+              onConfirm={async () => {
+                await api.delete(`/purchase-order/${value}`).then(() => {
+                  toast.success("Order deleted");
+                  fetchOrder();
+                });
+              }}
+            >
+              <Button danger type="primary">
+                Delete
+              </Button>
+            </Popconfirm>
+          </>
+        );
+      },
+    },
   ];
 
   const handleSubmitFile = async (values) => {
@@ -136,7 +166,13 @@ export const ManagePurchaseOrder = () => {
       >
         Add new purchase order
       </Button>
-      <Table columns={columns} dataSource={orders} />
+      <Table
+        columns={columns}
+        dataSource={orders}
+        expandedRowRender={(record) => {
+          return <OrderDetail orderId={record.id} />;
+        }}
+      />
       <Modal
         open={showModal}
         onCancel={() => {
@@ -164,6 +200,58 @@ export const ManagePurchaseOrder = () => {
           </Form.Item>
         </Form>
       </Modal>
+    </div>
+  );
+};
+
+// eslint-disable-next-line react/prop-types
+const OrderDetail = ({ orderId }) => {
+  const [orderDetail, setOrderDetail] = useState();
+  const fetchOrderDetail = async () => {
+    const response = await api.get(
+      `/purchase-order/${orderId}/purchase-order-details`
+    );
+    console.log(response.data.data[0]);
+    setOrderDetail(response.data.data[0]);
+  };
+
+  const columns = [
+    {
+      title: "Material Name",
+      dataIndex: "materialName",
+      key: "materialName",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Unit",
+      dataIndex: "unit",
+      key: "unit",
+    },
+    {
+      title: "Unit Price",
+      dataIndex: "unitPrice",
+      key: "unitPrice",
+      render: (text) => <div>{text.toLocaleString()}</div>,
+    },
+    {
+      title: "Sub Total",
+      dataIndex: "subTotal",
+      key: "subTotal",
+      render: (text) => <div>{text.toLocaleString()}</div>,
+    },
+  ];
+
+  useEffect(() => {
+    fetchOrderDetail();
+  }, []);
+
+  return (
+    <div className="order-detail">
+      <Table dataSource={orderDetail?.listDetails} columns={columns} />
     </div>
   );
 };

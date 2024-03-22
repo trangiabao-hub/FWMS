@@ -1,6 +1,25 @@
 import { Avatar, Col, Row } from "antd";
 import "./index.scss";
+import { useEffect, useState } from "react";
+import api from "../../config/axios";
+import { useSelector } from "react-redux";
 const Profile = () => {
+  const [profile, setProfile] = useState([]);
+  const user = useSelector((store) => store.user);
+
+  const fetchProfile = async () => {
+    const response = await api.get(`/user/${user.id}`);
+    console.log(response.data.data);
+    const role = (await api.get(`/role/${response.data.data.roleId}`)).data
+      .data;
+    response.data.data.role = role.name;
+    setProfile(response.data.data);
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   return (
     <div className="profile">
       <Row>
@@ -16,11 +35,11 @@ const Profile = () => {
           <div className="detail">
             <div className="row">
               <label htmlFor="">Họ và tên</label>
-              <span>Trương Trong Kha</span>
+              <span>{profile?.name}</span>
             </div>
             <div className="row">
               <label htmlFor="">Giới tính</label>
-              <span>Nam</span>
+              <span>{profile?.gender}</span>
             </div>
             <div className="row">
               <label htmlFor="">Ngày sinh</label>
@@ -42,11 +61,11 @@ const Profile = () => {
           <div className="detail">
             <div className="row">
               <label htmlFor="">Mã ID</label>
-              <span>SE11445666</span>
+              <span>{user.id}</span>
             </div>
             <div className="row">
               <label htmlFor="">Chức Vụ</label>
-              <span>Staff</span>
+              <span>{profile?.role}</span>
             </div>
             <div className="row">
               <label htmlFor="">CCCD</label>
@@ -62,7 +81,7 @@ const Profile = () => {
           <div className="detail">
             <div className="row">
               <label htmlFor="">Tài khoản</label>
-              <span>SE11445666</span>
+              <span>{profile?.userName}</span>
             </div>
             <div className="row">
               <label htmlFor="">Mật khẩu</label>
