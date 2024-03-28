@@ -1,4 +1,8 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  useNavigate,
+} from "react-router-dom";
 import { Login } from "./page/login";
 import { ConfigProvider } from "antd";
 import { SignUp } from "./page/signup";
@@ -6,11 +10,12 @@ import Dashboard from "./component/dashboard";
 import Profile from "./page/profile";
 import { ManageUser } from "./page/admin/user";
 import { ManagePurchaseOrder } from "./page/staff/order";
+import { Home } from "./page/home";
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <h1>home</h1>,
+      element: <Home />,
     },
     {
       path: "/login",
