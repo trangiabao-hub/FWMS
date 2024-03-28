@@ -9,6 +9,10 @@ import { ManagePurchaseOrder } from "./page/staff/order";
 function App() {
   const router = createBrowserRouter([
     {
+      path: "/",
+      element: <h1>home</h1>,
+    },
+    {
       path: "/login",
       element: <Login />,
     },
