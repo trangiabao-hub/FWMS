@@ -1,8 +1,4 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-  useNavigate,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Login } from "./page/login";
 import { ConfigProvider } from "antd";
 import { SignUp } from "./page/signup";
@@ -11,6 +7,9 @@ import Profile from "./page/profile";
 import { ManageUser } from "./page/admin/user";
 import { ManagePurchaseOrder } from "./page/staff/order";
 import { Home } from "./page/home";
+import { ManageCategory } from "./page/admin/category";
+import { ManageMaterial } from "./page/admin/material";
+import { ManageRequest } from "./page/staff/request";
 function App() {
   const router = createBrowserRouter([
     {
@@ -32,6 +31,9 @@ function App() {
         { path: "profile", element: <Profile /> },
         { path: "user", element: <ManageUser /> },
         { path: "order", element: <ManagePurchaseOrder /> },
+        { path: "category", element: <ManageCategory /> },
+        { path: "material", element: <ManageMaterial /> },
+        { path: "request", element: <ManageRequest /> },
       ],
     },
   ]);

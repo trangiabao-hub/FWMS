@@ -1,0 +1,20 @@
+.user img{
+    width: 100%;
+}
+
+.user{
+    padding: 10px;
+    border: 1px solid lightgray;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.user span{
+    text-align: center;
+    display: block;
+}
+
+.user.active{
+    border-color: #359567;
+    border-width: 2px;
+}

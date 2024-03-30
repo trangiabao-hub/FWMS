@@ -4,6 +4,9 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
   PicRightOutlined,
+  AlignLeftOutlined,
+  PieChartOutlined,
+  PullRequestOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Button, theme, Row, Col, Dropdown, Avatar } from "antd";
 const { Header, Sider, Content } = Layout;
@@ -53,6 +56,16 @@ const Dashboard = () => {
             icon: <UserOutlined />,
             label: <Link to={"user"}>Manage User</Link>,
           },
+          {
+            key: "category",
+            icon: <AlignLeftOutlined />,
+            label: <Link to={"category"}>Manage category</Link>,
+          },
+          {
+            key: "material",
+            icon: <PieChartOutlined />,
+            label: <Link to={"material"}>Manage material</Link>,
+          },
         ]);
       } else if (role === "Purchasing staff") {
         setDashboardItem([
@@ -60,6 +73,32 @@ const Dashboard = () => {
             key: "order",
             icon: <PicRightOutlined />,
             label: <Link to={"order"}>Manage Purchase Order</Link>,
+          },
+        ]);
+      } else if (role === "Warehouse staff") {
+        setDashboardItem([
+          {
+            key: "order",
+            icon: <PicRightOutlined />,
+            label: <Link to={"order"}>Manage Purchase Order</Link>,
+          },
+          {
+            key: "request",
+            icon: <PullRequestOutlined />,
+            label: <Link to={"request"}>Manage request</Link>,
+          },
+        ]);
+      } else if (role === "Manage warehouse department") {
+        setDashboardItem([
+          {
+            key: "order",
+            icon: <PicRightOutlined />,
+            label: <Link to={"order"}>Manage Purchase Order</Link>,
+          },
+          {
+            key: "request",
+            icon: <PullRequestOutlined />,
+            label: <Link to={"request"}>Manage request</Link>,
           },
         ]);
       }

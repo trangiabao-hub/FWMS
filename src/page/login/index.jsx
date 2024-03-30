@@ -5,19 +5,26 @@ import api from "../../config/axios";
 import { useDispatch } from "react-redux";
 import { login } from "../../redux/features/user";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const onFinish = async (values) => {
-    const response = await api.post("/user/login", values);
-    dispatch(login(response.data.data));
-    localStorage.setItem("token", response.data.data.tokenString);
-    if (
-      response.data.data.role === "Admin" ||
-      response.data.data.role === "Purchasing staff"
-    ) {
-      navigate("/dashboard");
+    try {
+      const response = await api.post("/user/login", values);
+      dispatch(login(response.data.data));
+      localStorage.setItem("token", response.data.data.tokenString);
+      if (
+        response.data.data.role === "Admin" ||
+        response.data.data.role === "Purchasing staff" ||
+        response.data.data.role === "Manage warehouse department" ||
+        response.data.data.role === "Warehouse staff"
+      ) {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      toast.error(err.response.data.message);
     }
   };
   return (

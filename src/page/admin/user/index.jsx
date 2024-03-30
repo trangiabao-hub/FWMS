@@ -28,6 +28,7 @@ export const ManageUser = () => {
   const [fileList, setFileList] = useState([]);
   const [roles, setRoles] = useState([]);
   const [user, setUser] = useState([]);
+  const [loading, setLoading] = useState(true);
   const columns = [
     {
       title: "ID",
@@ -143,7 +144,7 @@ export const ManageUser = () => {
 
   const onFinish = async (values) => {
     console.log("Received values:", values);
-    if (values.avatar.file) {
+    if (values?.avatar?.file) {
       const url = await uploadFile(values.avatar.file.originFileObj);
       values.avatar = url;
     }
@@ -176,6 +177,7 @@ export const ManageUser = () => {
         };
       })
     );
+    setLoading(false);
     console.log(user);
     setUser(user);
   };
@@ -195,7 +197,7 @@ export const ManageUser = () => {
       >
         Add new user
       </Button>
-      <Table columns={columns} dataSource={user} />;
+      <Table loading={loading} columns={columns} dataSource={user} />;
       <Modal
         open={showModal}
         onOk={() => {
@@ -327,9 +329,9 @@ export const ManageUser = () => {
           <Form.Item
             label="Avatar"
             name="avatar"
-            rules={[
-              { required: true, message: "Please input your avatar URL!" },
-            ]}
+            // rules={[
+            //   { required: true, message: "Please input your avatar URL!" },
+            // ]}
           >
             <Upload
               action="https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188"

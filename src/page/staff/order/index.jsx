@@ -11,6 +11,7 @@ export const ManagePurchaseOrder = () => {
   const [orders, serOrders] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [form] = useForm();
+  const [loading, setLoading] = useState(true);
 
   const fetchOrder = async () => {
     const response = await api.get("/purchase-order");
@@ -24,6 +25,7 @@ export const ManagePurchaseOrder = () => {
         };
       })
     );
+    setLoading(false);
     console.log(order);
     serOrders(order);
   };
@@ -167,6 +169,7 @@ export const ManagePurchaseOrder = () => {
         Add new purchase order
       </Button>
       <Table
+        loading={loading}
         columns={columns}
         dataSource={orders}
         expandedRowRender={(record) => {
@@ -207,12 +210,14 @@ export const ManagePurchaseOrder = () => {
 // eslint-disable-next-line react/prop-types
 const OrderDetail = ({ orderId }) => {
   const [orderDetail, setOrderDetail] = useState();
+  const [loading, setLoading] = useState(true);
   const fetchOrderDetail = async () => {
     const response = await api.get(
       `/purchase-order/${orderId}/purchase-order-details`
     );
     console.log(response.data.data[0]);
     setOrderDetail(response.data.data[0]);
+    setLoading(false);
   };
 
   const columns = [
@@ -251,7 +256,11 @@ const OrderDetail = ({ orderId }) => {
 
   return (
     <div className="order-detail">
-      <Table dataSource={orderDetail?.listDetails} columns={columns} />
+      <Table
+        loading={loading}
+        dataSource={orderDetail?.listDetails}
+        columns={columns}
+      />
     </div>
   );
 };
