@@ -103,10 +103,15 @@ export const ManagePurchaseOrder = () => {
       dataIndex: "uri",
       key: "uri",
       render: (value) => {
+        console.log(value);
         return (
-          <a href={value} target="_blank">
+          <Button
+            onClick={() => {
+              window.open(value, "_blank");
+            }}
+          >
             Download
-          </a>
+          </Button>
         );
       },
     },
