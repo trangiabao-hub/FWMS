@@ -18,3 +18,31 @@
     border-color: #359567;
     border-width: 2px;
 }
+
+.tag{
+    /* background-color: red; */
+    width: 200px;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.content{
+    font-size: 20px;
+}
+
+.request-detail p{
+    padding: 10px 10px;
+}
+
+.request-detail li{
+    padding: 0 20px;
+    margin-left: 100px;
+}
+
+.request-detail .staff{
+    display: flex;
+}
+.request-detail .staff p{
+    width: 50%;
+}
