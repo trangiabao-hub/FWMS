@@ -1,4 +1,13 @@
-import { Button, Form, Modal, Popconfirm, Table, Upload } from "antd";
+import {
+  Button,
+  Descriptions,
+  Form,
+  Modal,
+  Popconfirm,
+  Table,
+  Tabs,
+  Upload,
+} from "antd";
 import { useEffect, useState } from "react";
 import api from "../../../config/axios";
 import { formatDistance } from "date-fns";
@@ -7,6 +16,8 @@ import { UploadOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import "./index.css";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { formatVND } from "../../../utils/currency";
 export const ManagePurchaseOrder = () => {
   const [orders, serOrders] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -225,6 +236,15 @@ const OrderDetail = ({ orderId }) => {
     setLoading(false);
   };
 
+  const fetchOrderDetailPhase = async () => {
+    const response = await api.get(
+      `/purchase-order-phase/${orderId}/purchase-order-phase-details`
+    );
+    console.log(response.data.data);
+    setOrderDetail(response.data.data);
+    setLoading(false);
+  };
+
   const columns = [
     {
       title: "Material Name",
@@ -256,15 +276,44 @@ const OrderDetail = ({ orderId }) => {
   ];
 
   useEffect(() => {
-    fetchOrderDetail();
+    fetchOrderDetailPhase();
   }, []);
 
   return (
     <div className="order-detail">
-      <Table
-        loading={loading}
-        dataSource={orderDetail?.listDetails}
-        columns={columns}
+      <Tabs
+        defaultActiveKey="1"
+        items={orderDetail?.map((item) => {
+          return {
+            key: item.id,
+            label: `Phase ${item.phase} (${dayjs(item.expectedDate).format(
+              "DD/MM/YYYY"
+            )})`,
+            children: (
+              <>
+                <Descriptions title="Order Details">
+                  <Descriptions.Item label="PO Code">
+                    {item?.poCode}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Expected Date">
+                    {dayjs(item.expectedDate).format("DD/MM/YYYY")}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Total Price">
+                    {formatVND(item?.totalPrice)}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Deliver">
+                    {item?.deliver}
+                  </Descriptions.Item>
+                </Descriptions>
+                <Table
+                  loading={loading}
+                  dataSource={item?.listDetails}
+                  columns={columns}
+                />
+              </>
+            ),
+          };
+        })}
       />
     </div>
   );
