@@ -23,6 +23,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { formatVND } from "../../../utils/currency";
+import dayjs from "dayjs";
 const props = {
   name: "file",
 };
@@ -46,6 +47,8 @@ export const ManageRequest = () => {
   const [products, setProducts] = useState([]);
   const [goodDetail, setGoodDetail] = useState(null);
   const [paginationUser, setPaginationUser] = useState({});
+  const [selectedPO, setSelectedPO] = useState();
+  const [orderDetail, setOrderDetail] = useState([]);
 
   const onFinishPhieu = async (values) => {
     try {
@@ -150,6 +153,21 @@ export const ManageRequest = () => {
     serOrders(order);
   };
 
+  const fetchOrderDetail = async () => {
+    setOrderDetail([]);
+    const response = await api.get(
+      `/purchase-order-phase/${selectedPO}/purchase-order-phase-details`
+    );
+    console.log(response.data.data);
+    setOrderDetail(response.data.data);
+  };
+
+  useEffect(() => {
+    if (selectedPO) {
+      fetchOrderDetail();
+    }
+  }, [selectedPO]);
+
   const onFinish = async (values) => {
     console.log(values);
     const formApi = new FormData();
@@ -157,6 +175,7 @@ export const ManageRequest = () => {
     formApi.append("Description", values.description);
     formApi.append("RelatedInformation", values.relatedInformation);
     formApi.append("WarehouseId", values.warehouseId);
+    formApi.append("Phase", values.phase);
     if (values?.relatedInformation?.file) {
       formApi.append(
         "Attachment",
@@ -543,10 +562,38 @@ export const ManageRequest = () => {
                       label: item.poCode,
                     };
                   })}
+                  onChange={(value) => {
+                    setSelectedPO(value);
+                  }}
                 />
               </Form.Item>
             </Col>
             <Col span={12}>
+              <Form.Item
+                label="Phase"
+                name="phase"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the phase!",
+                  },
+                ]}
+              >
+                <Select
+                  disabled={orderDetail.length === 0}
+                  options={orderDetail.map((item) => {
+                    console.log(item);
+                    return {
+                      value: item.phase,
+                      label: `Phase ${item.phase} (${dayjs(
+                        item.expectedDate
+                      ).format("DD/MM/YYYY")})`,
+                    };
+                  })}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
               <Form.Item
                 label="Warehouse"
                 name="warehouseId"
@@ -742,7 +789,7 @@ export const ManageRequest = () => {
           setShowPhieu(null);
           formPhieu.resetFields();
         }}
-        width={1000}
+        width={1300}
         okText="Create"
         onOk={() => formPhieu.submit()}
       >
@@ -795,7 +842,7 @@ export const ManageRequest = () => {
                 {fields.map(({ key, name, fieldKey, ...restField }, index) => (
                   <div key={key}>
                     <Row gutter={12} justify="space-between" align="middle">
-                      <Col span={5}>
+                      <Col span={4}>
                         <Form.Item
                           {...restField}
                           label="Material Name"
@@ -805,7 +852,7 @@ export const ManageRequest = () => {
                           <Input />
                         </Form.Item>
                       </Col>
-                      <Col span={4}>
+                      <Col span={3}>
                         <Form.Item
                           {...restField}
                           label="Quantity"
@@ -815,7 +862,23 @@ export const ManageRequest = () => {
                           <InputNumber style={{ width: "100%" }} />
                         </Form.Item>
                       </Col>
-                      <Col span={4}>
+                      <Col span={3}>
+                        <Form.Item
+                          {...restField}
+                          label="Import Quantity"
+                          name={[name, "importQuantity"]}
+                          fieldKey={[fieldKey, "importQuantity"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please input import quantity!",
+                            },
+                          ]}
+                        >
+                          <InputNumber style={{ width: "100%" }} />
+                        </Form.Item>
+                      </Col>
+                      <Col span={3}>
                         <Form.Item
                           {...restField}
                           label="Unit"
@@ -825,7 +888,7 @@ export const ManageRequest = () => {
                           <Input />
                         </Form.Item>
                       </Col>
-                      <Col span={4}>
+                      <Col span={3}>
                         <Form.Item
                           {...restField}
                           label="Unit Price"
