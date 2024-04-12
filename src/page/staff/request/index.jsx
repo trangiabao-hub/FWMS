@@ -55,7 +55,7 @@ export const ManageRequest = () => {
       console.log("Received values:", values);
       const response = await api.post(
         `/good-receipt-note/${requestDetail.id}/request`,
-        values
+        { ...values, phase: requestDetail.phase }
       );
       const good = response.data.goodReceipNoteDetails;
       console.log(good);
