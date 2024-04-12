@@ -698,7 +698,6 @@ export const ManageRequest = () => {
             key="Cancel"
             onClick={() => {
               setRequestDetail(null);
-              setLoadingOrderDetail(true);
             }}
           >
             Cancel
@@ -716,7 +715,6 @@ export const ManageRequest = () => {
             <Button
               type="primary"
               key="Download"
-              loading={loadingOrderDetail}
               onClick={() => {
                 setShowPhieu(true);
                 console.log(purchaseOrder);
