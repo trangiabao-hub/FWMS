@@ -37,7 +37,6 @@ export const ManagePurchaseOrder = () => {
       })
     );
     setLoading(false);
-    console.log(order);
     serOrders(order);
   };
 
@@ -47,9 +46,12 @@ export const ManagePurchaseOrder = () => {
 
   const columns = [
     {
-      title: "ID",
+      title: "STT(NO)",
       dataIndex: "id",
       key: "id",
+      render: (value, record, index) => {
+        return index + 1;
+      },
     },
     {
       title: "PO Code",
@@ -114,7 +116,6 @@ export const ManagePurchaseOrder = () => {
       dataIndex: "uri",
       key: "uri",
       render: (value) => {
-        console.log(value);
         return (
           <Button
             onClick={() => {
@@ -164,7 +165,6 @@ export const ManagePurchaseOrder = () => {
     );
     try {
       const response = await api.post("/purchase-order/excel-file", formData);
-      console.log(response);
       form.resetFields();
       setShowModal(false);
       fetchOrder();
@@ -225,24 +225,28 @@ export const ManagePurchaseOrder = () => {
 
 // eslint-disable-next-line react/prop-types
 const OrderDetail = ({ orderId }) => {
-  const [orderDetail, setOrderDetail] = useState();
+  const [orderDetail, setOrderDetail] = useState([]);
   const [loading, setLoading] = useState(true);
-  const fetchOrderDetail = async () => {
-    const response = await api.get(
-      `/purchase-order/${orderId}/purchase-order-details`
-    );
-    console.log(response.data.data[0]);
-    setOrderDetail(response.data.data[0]);
-    setLoading(false);
-  };
+  const fetchOrderDetail = async () => {};
 
   const fetchOrderDetailPhase = async () => {
+    const arr = [];
     const response = await api.get(
       `/purchase-order-phase/${orderId}/purchase-order-phase-details`
     );
-    console.log(response.data.data);
-    setOrderDetail(response.data.data);
+    const response2 = await api.get(
+      `/purchase-order/${orderId}/purchase-order-details`
+    );
+    arr.push(response2.data.data[0]);
+    arr.push(...response.data.data);
+    setOrderDetail(arr);
     setLoading(false);
+    // const arr = [...orderDetail];
+    // console.log(arr);
+    // arr.push(...response.data.data);
+    // console.log(arr);
+    // setOrderDetail(arr);
+    // setLoading(false);
   };
 
   const columns = [
@@ -276,19 +280,27 @@ const OrderDetail = ({ orderId }) => {
   ];
 
   useEffect(() => {
-    fetchOrderDetailPhase();
+    const fetch = async () => {
+      await fetchOrderDetail();
+      await fetchOrderDetailPhase();
+    };
+
+    fetch();
   }, []);
 
   return (
     <div className="order-detail">
       <Tabs
         defaultActiveKey="1"
-        items={orderDetail?.map((item) => {
+        items={orderDetail?.map((item, index) => {
           return {
             key: item.id,
-            label: `Phase ${item.phase} (${dayjs(item.expectedDate).format(
-              "DD/MM/YYYY"
-            )})`,
+            label:
+              index === 0
+                ? "PURCHASE ORDER  "
+                : `Phase ${item.phase} (${dayjs(item.expectedDate).format(
+                    "DD/MM/YYYY"
+                  )})`,
             children: (
               <>
                 <Descriptions title="Order Details">

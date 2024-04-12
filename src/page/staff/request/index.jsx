@@ -169,11 +169,14 @@ export const ManageRequest = () => {
   }, [selectedPO]);
 
   const onFinish = async (values) => {
+    const poCode = orders.filter(
+      (item) => item.id === values.relatedInformation
+    )[0].poCode;
     console.log(values);
     const formApi = new FormData();
     formApi.append("Title", values.title);
     formApi.append("Description", values.description);
-    formApi.append("RelatedInformation", values.relatedInformation);
+    formApi.append("RelatedInformation", poCode);
     formApi.append("WarehouseId", values.warehouseId);
     formApi.append("Phase", values.phase);
     if (values?.relatedInformation?.file) {
@@ -194,10 +197,10 @@ export const ManageRequest = () => {
   const fetchPurchaseOrder = async () => {
     console.log(requestDetail);
     const response = await api.get(
-      `/purchase-order/${requestDetail.relatedInformation}`
+      `request/${requestDetail.id}/relate-infomation/${requestDetail.relatedInformation}`
     );
-
-    setPurchaseOrder(response.data.data);
+    console.log(response.data.data);
+    setPurchaseOrder(response.data.data[0]);
   };
 
   const fetchPurchaseOrderDetail = async () => {
@@ -691,7 +694,13 @@ export const ManageRequest = () => {
         className="request-detail"
         width={1000}
         footer={[
-          <Button key="Cancel" onClick={() => setRequestDetail(null)}>
+          <Button
+            key="Cancel"
+            onClick={() => {
+              setRequestDetail(null);
+              setLoadingOrderDetail(true);
+            }}
+          >
             Cancel
           </Button>,
           requestDetail?.attachment && (
@@ -707,6 +716,7 @@ export const ManageRequest = () => {
             <Button
               type="primary"
               key="Download"
+              loading={loadingOrderDetail}
               onClick={() => {
                 setShowPhieu(true);
                 console.log(purchaseOrder);
@@ -801,13 +811,13 @@ export const ManageRequest = () => {
             date: moment(),
           }}
         >
-          <Form.Item
+          {/* <Form.Item
             label="URI"
             name="uri"
             rules={[{ required: true, message: "Please input URI!" }]}
           >
             <Input />
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item
             label="NO"
             name="no"
