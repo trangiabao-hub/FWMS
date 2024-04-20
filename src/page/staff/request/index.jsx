@@ -24,6 +24,7 @@ import { toast } from "react-toastify";
 import moment from "moment";
 import { formatVND } from "../../../utils/currency";
 import dayjs from "dayjs";
+import { OrderDetail, OrderDetailByPhase } from "../order";
 const props = {
   name: "file",
 };
@@ -49,6 +50,7 @@ export const ManageRequest = () => {
   const [paginationUser, setPaginationUser] = useState({});
   const [selectedPO, setSelectedPO] = useState();
   const [orderDetail, setOrderDetail] = useState([]);
+  const [showPO, setShowPO] = useState(null);
 
   const onFinishPhieu = async (values) => {
     try {
@@ -235,15 +237,15 @@ export const ManageRequest = () => {
     fetchUser();
   }, []);
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id, isApproved) => {
     const response = await api.put(`/request/${id}/approve`, {
-      isApproved: true,
+      isApproved,
     });
 
     console.log(response);
     fetchRequest(pagination.current);
 
-    toast.success("Successfully approve request");
+    toast.success(`Successfully ${isApproved ? "approve" : "reject"} request`);
   };
 
   const userColumns = [
@@ -437,12 +439,25 @@ export const ManageRequest = () => {
       dataIndex: "id",
       key: "id",
       render: (value, record) => {
-        return user.role === "Manage warehouse department" ? (
+        return user.role === "Manage warehouse department" ||
+          user.role === "Admin" ? (
           <>
             {record.status === "Pending" && (
-              <Button type="primary" onClick={() => handleApprove(value)}>
-                Approve
-              </Button>
+              <>
+                <Button
+                  type="primary"
+                  onClick={() => handleApprove(value, true)}
+                >
+                  Approve
+                </Button>
+                <Button
+                  type="primary"
+                  danger
+                  onClick={() => handleApprove(value, false)}
+                >
+                  Reject
+                </Button>
+              </>
             )}
             {record.status === "InProgress" && (
               <Button
@@ -744,6 +759,19 @@ export const ManageRequest = () => {
           <span className="content">{requestDetail?.relatedInformation}</span>
         </p>
         <p>
+          <span className="tag">Purchase Order:</span>{" "}
+          <span className="content">
+            <Button
+              type="primary"
+              onClick={() => {
+                setShowPO(purchaseOrder);
+              }}
+            >
+              Show PO
+            </Button>
+          </span>
+        </p>
+        <p>
           <span className="tag">Description:</span>{" "}
           <span className="content">{requestDetail?.description}</span>
         </p>
@@ -948,6 +976,15 @@ export const ManageRequest = () => {
             pageSize: 5,
           }}
         />
+      </Modal>
+
+      <Modal
+        width={800}
+        title="Purchase Order"
+        open={showPO}
+        onCancel={() => setShowPO(null)}
+      >
+        <OrderDetailByPhase POPhase={showPO} />
       </Modal>
     </div>
   );

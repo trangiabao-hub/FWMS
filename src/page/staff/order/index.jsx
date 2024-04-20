@@ -59,6 +59,11 @@ export const ManagePurchaseOrder = () => {
       key: "poCode",
     },
     {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+    },
+    {
       title: "Supplier",
       dataIndex: "supplier",
       key: "supplier",
@@ -224,10 +229,9 @@ export const ManagePurchaseOrder = () => {
 };
 
 // eslint-disable-next-line react/prop-types
-const OrderDetail = ({ orderId }) => {
+export const OrderDetail = ({ orderId }) => {
   const [orderDetail, setOrderDetail] = useState([]);
   const [loading, setLoading] = useState(true);
-  const fetchOrderDetail = async () => {};
 
   const fetchOrderDetailPhase = async () => {
     const arr = [];
@@ -281,7 +285,6 @@ const OrderDetail = ({ orderId }) => {
 
   useEffect(() => {
     const fetch = async () => {
-      await fetchOrderDetail();
       await fetchOrderDetailPhase();
     };
 
@@ -327,6 +330,58 @@ const OrderDetail = ({ orderId }) => {
           };
         })}
       />
+    </div>
+  );
+};
+
+// eslint-disable-next-line react/prop-types
+export const OrderDetailByPhase = ({ POPhase }) => {
+  console.log(POPhase);
+  const columns = [
+    {
+      title: "Material Name",
+      dataIndex: "materialName",
+      key: "materialName",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Unit",
+      dataIndex: "unit",
+      key: "unit",
+    },
+    {
+      title: "Unit Price",
+      dataIndex: "unitPrice",
+      key: "unitPrice",
+      render: (text) => <div>{text.toLocaleString()}</div>,
+    },
+    {
+      title: "Sub Total",
+      dataIndex: "subTotal",
+      key: "subTotal",
+      render: (text) => <div>{text.toLocaleString()}</div>,
+    },
+  ];
+
+  return (
+    <div className="order-detail">
+      <Descriptions title="Order Details">
+        <Descriptions.Item label="PO Code">{POPhase?.poCode}</Descriptions.Item>
+        <Descriptions.Item label="Expected Date">
+          {dayjs(POPhase?.expectedDate).format("DD/MM/YYYY")}
+        </Descriptions.Item>
+        <Descriptions.Item label="Total Price">
+          {formatVND(POPhase?.totalPrice)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Deliver">
+          {POPhase?.deliver}
+        </Descriptions.Item>
+      </Descriptions>
+      <Table dataSource={POPhase?.listDetails} columns={columns} />
     </div>
   );
 };

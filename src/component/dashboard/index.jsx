@@ -76,6 +76,11 @@ const Dashboard = () => {
             icon: <PullRequestOutlined />,
             label: <Link to={"request"}>Manage request</Link>,
           },
+          {
+            key: "product",
+            icon: <PullRequestOutlined />,
+            label: <Link to={"product"}>Manage product</Link>,
+          },
         ]);
       } else if (role === "Purchasing staff") {
         setDashboardItem([

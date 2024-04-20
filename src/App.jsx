@@ -10,6 +10,7 @@ import { Home } from "./page/home";
 import { ManageCategory } from "./page/admin/category";
 import { ManageMaterial } from "./page/admin/material";
 import { ManageRequest } from "./page/staff/request";
+import { ManageProduct } from "./page/staff/product";
 function App() {
   const router = createBrowserRouter([
     {
@@ -34,6 +35,7 @@ function App() {
         { path: "category", element: <ManageCategory /> },
         { path: "material", element: <ManageMaterial /> },
         { path: "request", element: <ManageRequest /> },
+        { path: "product", element: <ManageProduct /> },
       ],
     },
   ]);

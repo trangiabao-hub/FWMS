@@ -21,7 +21,6 @@ export const ManageMaterial = () => {
   const [showModal, setShowModal] = useState(-2);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
-  const [warehouse, setWarehouse] = useState([]);
 
   const [form] = useForm();
   const fetchMaterial = async (page = 0) => {
@@ -44,15 +43,9 @@ export const ManageMaterial = () => {
     setCategories(response.data.data.pagingData);
   };
 
-  const fetchWarehouse = async (page = 0) => {
-    const response = await api.get(`/warehouse?PageIndex=${page}`);
-    setWarehouse(response.data.data.pagingData);
-  };
-
   useEffect(() => {
     fetchMaterial();
     fetchCategory();
-    fetchWarehouse();
   }, []);
 
   const columns = [
@@ -233,7 +226,7 @@ export const ManageMaterial = () => {
           </Row>
 
           <Row gutter={12}>
-            <Col span={12}>
+            <Col span={24}>
               <Form.Item
                 label="Category"
                 name="categoryId"
@@ -243,24 +236,6 @@ export const ManageMaterial = () => {
               >
                 <Select
                   options={categoies?.map((item) => {
-                    return {
-                      value: item.id,
-                      label: item.name,
-                    };
-                  })}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Warehouse"
-                name="warehouseId"
-                rules={[
-                  { required: true, message: "Please input the warehouse!" },
-                ]}
-              >
-                <Select
-                  options={warehouse.map((item) => {
                     return {
                       value: item.id,
                       label: item.name,
