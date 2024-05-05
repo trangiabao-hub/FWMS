@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseUrl = "https://fwms-rmv2.azurewebsites.net/api";
+const baseUrl = "http://159.223.65.4:5000/api";
 
 const config = {
   baseUrl,

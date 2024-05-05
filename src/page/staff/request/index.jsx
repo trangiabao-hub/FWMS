@@ -4,6 +4,7 @@ import {
   Col,
   DatePicker,
   Form,
+  Image,
   Input,
   InputNumber,
   Modal,
@@ -44,13 +45,38 @@ export const ManageRequest = () => {
   const [requestDetail, setRequestDetail] = useState(null);
   const [purchaseOrder, setPurchaseOrder] = useState(null);
   const [formPhieu] = Form.useForm();
+  const [formQualityCheck] = Form.useForm();
   const [showPhieu, setShowPhieu] = useState(false);
-  const [products, setProducts] = useState([]);
   const [goodDetail, setGoodDetail] = useState(null);
-  const [paginationUser, setPaginationUser] = useState({});
   const [selectedPO, setSelectedPO] = useState();
   const [orderDetail, setOrderDetail] = useState([]);
   const [showPO, setShowPO] = useState(null);
+  const [openCheckQuality, setOpenCheckQuality] = useState(false);
+
+  const [currentCreateQR, setCurrentCreateQR] = useState(null);
+  const [currentQuality, setCurrentQuantity] = useState(null);
+
+  const [formQR] = useForm();
+
+  const onFinishQR = async (values) => {
+    console.log(currentCreateQR);
+    console.log(values);
+
+    try {
+      const quantityId = requestDetail.listQualityControlReportData[0].id;
+      const response = await api.post(
+        `/QualityControlReport/${quantityId}/material/${currentCreateQR}/qr-code`,
+        values
+      );
+
+      formQR.resetFields();
+      setCurrentCreateQR(null);
+      console.log(response);
+      toast.success("Successfully created QR");
+    } catch (err) {
+      toast.error(err.response.data.message);
+    }
+  };
 
   const onFinishPhieu = async (values) => {
     try {
@@ -63,7 +89,9 @@ export const ManageRequest = () => {
       console.log(good);
       formPhieu.resetFields();
       setShowPhieu(false);
+      console.log({ ...requestDetail, status: "Done", good });
       setRequestDetail({ ...requestDetail, status: "Done", good });
+      fetchOrderDetail();
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);
@@ -87,6 +115,8 @@ export const ManageRequest = () => {
             `/request/${item.id}/request-detail`
           );
           const good = staffResponse.data.data[0].listGoodReceiptNote;
+          const listQualityControlReportData =
+            staffResponse.data.data[0].listQualityControlReportData;
           console.log(good);
           const staff = staffResponse.data.data[0].listMembers;
           const warehouseResponse = await api.get(
@@ -98,12 +128,14 @@ export const ManageRequest = () => {
             staff, // assuming you want to add staff data to each item
             warehouse,
             good,
+            listQualityControlReportData,
           };
         })
       );
 
       // Updating state with fetched data
       setRequest(requestsWithDetails);
+      console.log(requestsWithDetails);
 
       setPagination({
         ...pagination,
@@ -118,26 +150,9 @@ export const ManageRequest = () => {
     }
   };
 
-  const fetchUser = async (page = 0) => {
-    const response = await api.get(`/user?PageIndex=${page}`);
-    const user = await Promise.all(
-      response.data.data.pagingData.map(async (item) => {
-        const role = (await api.get(`/role/${item.roleId}`)).data.data;
-        return {
-          ...item,
-          role: role.name,
-        };
-      })
-    );
-
-    setPaginationUser({
-      ...pagination,
-      total: response.data.data.totalCount,
-      current: response.data.data.pageIndex,
-      pageSize: response.data.data.pageSize,
-    });
-    console.log(user);
-    setUsers(user);
+  const fetchUser = async () => {
+    const response = await api.get(`/user/warehouse-staff`);
+    setUsers(response.data.data);
   };
 
   const fetchOrder = async (page = 0) => {
@@ -160,7 +175,6 @@ export const ManageRequest = () => {
     const response = await api.get(
       `/purchase-order-phase/${selectedPO}/purchase-order-phase-details`
     );
-    console.log(response.data.data);
     setOrderDetail(response.data.data);
   };
 
@@ -174,7 +188,6 @@ export const ManageRequest = () => {
     const poCode = orders.filter(
       (item) => item.id === values.relatedInformation
     )[0].poCode;
-    console.log(values);
     const formApi = new FormData();
     formApi.append("Title", values.title);
     formApi.append("Description", values.description);
@@ -197,30 +210,27 @@ export const ManageRequest = () => {
   };
 
   const fetchPurchaseOrder = async () => {
-    console.log(requestDetail);
     const response = await api.get(
       `request/${requestDetail.id}/relate-infomation/${requestDetail.relatedInformation}`
     );
-    console.log(response.data.data);
     setPurchaseOrder(response.data.data[0]);
   };
 
-  const fetchPurchaseOrderDetail = async () => {
-    console.log(requestDetail);
-    const response = await api.get(
-      `/purchase-order/${purchaseOrder.id}/purchase-order-details`
-    );
+  // const fetchPurchaseOrderDetail = async () => {
+  //   const response = await api.get(
+  //     `/purchase-order/${purchaseOrder.id}/purchase-order-details`
+  //   );
 
-    setProducts(response.data.data);
-  };
+  //   setProducts(response.data.data);
+  // };
 
-  useEffect(() => {
-    if (purchaseOrder) {
-      fetchPurchaseOrderDetail();
-    } else {
-      setProducts([]);
-    }
-  }, [purchaseOrder]);
+  // useEffect(() => {
+  //   if (purchaseOrder) {
+  //     fetchPurchaseOrderDetail();
+  //   } else {
+  //     setProducts([]);
+  //   }
+  // }, [purchaseOrder]);
 
   useEffect(() => {
     if (requestDetail) {
@@ -242,7 +252,6 @@ export const ManageRequest = () => {
       isApproved,
     });
 
-    console.log(response);
     fetchRequest(pagination.current);
 
     toast.success(`Successfully ${isApproved ? "approve" : "reject"} request`);
@@ -337,7 +346,6 @@ export const ManageRequest = () => {
               marginRight: 10,
             }}
             onClick={() => {
-              console.log(record.uri);
               window.open(record.uri, "_blank");
             }}
           >
@@ -345,7 +353,6 @@ export const ManageRequest = () => {
           </Button>
           <Button
             onClick={() => {
-              console.log(value);
               setGoodDetail(value);
             }}
           >
@@ -353,6 +360,47 @@ export const ManageRequest = () => {
           </Button>
         </>
       ),
+    },
+  ];
+
+  const materialColumns = [
+    {
+      title: "Material Name",
+      dataIndex: "materialName",
+      key: "materialName",
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Unit",
+      dataIndex: "unit",
+      key: "unit",
+    },
+    {
+      title: "Action",
+      dataIndex: "unit",
+      key: "unit",
+    },
+    {
+      title: "Action",
+      dataIndex: "materialId",
+      key: "materialId",
+      render: (value, record) => {
+        return record?.qrCode ? (
+          <Image src={record.qrCode.image} width={100} />
+        ) : (
+          <Button
+            onClick={() => {
+              setCurrentCreateQR(value);
+            }}
+          >
+            Create QR
+          </Button>
+        );
+      },
     },
   ];
 
@@ -470,22 +518,11 @@ export const ManageRequest = () => {
                 Assign Staff
               </Button>
             )}
-            {record.status === "InProgress" && (
-              <Button
-                type="primary"
-                onClick={() => {
-                  setSelectedRequest(record.id);
-                  setAssignStaff(true);
-                }}
-              >
-                Create
-              </Button>
-            )}
 
             <Button
               onClick={() => {
-                console.log(record);
                 setRequestDetail(record);
+                console.log(record);
               }}
             >
               Show Detail
@@ -495,6 +532,7 @@ export const ManageRequest = () => {
           <>
             <Button
               onClick={() => {
+                console.log(request);
                 console.log(record);
                 setRequestDetail(record);
               }}
@@ -513,6 +551,23 @@ export const ManageRequest = () => {
 
   const handleUserChange = (pagination) => {
     fetchUser(pagination.current);
+  };
+
+  const onFinishQualityCheck = async (values) => {
+    console.log(values);
+    console.log(requestDetail);
+    try {
+      const response = await api.post(
+        `/QualityControlReport/${requestDetail.id}/request`,
+        values
+      );
+      formQualityCheck.resetFields();
+      toast.success("Successfully create new quality check");
+      console.log(response);
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response.data.message);
+    }
   };
 
   return (
@@ -551,7 +606,26 @@ export const ManageRequest = () => {
             name="title"
             rules={[{ required: true, message: "Please input title!" }]}
           >
-            <Input />
+            <Select
+              options={[
+                {
+                  value: "OrderConfirmationRequest",
+                  label: "Order Confirmation Request",
+                },
+                {
+                  value: "InboundShipmentRequest",
+                  label: "Inbound Shipment Request",
+                },
+                {
+                  value: "OutboundShipmentRequest",
+                  label: "Outbound Shipment Request",
+                },
+                {
+                  value: "QualityControlRequest",
+                  label: "Quality Control Request",
+                },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item
@@ -623,7 +697,7 @@ export const ManageRequest = () => {
                   options={warehouse.map((item) => {
                     return {
                       value: item.id,
-                      label: item.name,
+                      label: `${item.type} Warehouse`,
                     };
                   })}
                 />
@@ -667,7 +741,6 @@ export const ManageRequest = () => {
         <Table
           columns={userColumns}
           dataSource={users}
-          pagination={paginationUser}
           onChange={handleUserChange}
         />
         {/* <Row gutter={[12, 12]}>
@@ -726,24 +799,41 @@ export const ManageRequest = () => {
               Download
             </Button>
           ),
-          requestDetail?.status !== "Done" && (
-            <Button
-              type="primary"
-              key="Download"
-              onClick={() => {
-                setShowPhieu(true);
-                console.log(purchaseOrder);
-                console.log(products[0].listDetails);
-                formPhieu.setFieldsValue(purchaseOrder);
-                formPhieu.setFieldValue(
-                  "goodReceipNoteDetails",
-                  products[0].listDetails
-                );
-              }}
-            >
-              Create phiếu
-            </Button>
-          ),
+          requestDetail?.status !== "Done" &&
+            requestDetail?.title === "OrderConfirmationRequest" && (
+              <Button
+                type="primary"
+                key="nhapkho"
+                onClick={() => {
+                  setShowPhieu(true);
+                  console.log(purchaseOrder);
+                  formPhieu.setFieldsValue(purchaseOrder);
+                  formPhieu.setFieldValue(
+                    "goodReceipNoteDetails",
+                    purchaseOrder.listDetails
+                  );
+                }}
+              >
+                Create phiếu
+              </Button>
+            ),
+          requestDetail?.status !== "Done" &&
+            requestDetail?.title === "QualityControlRequest" && (
+              <Button
+                type="primary"
+                key="kiemdinh"
+                onClick={() => {
+                  setOpenCheckQuality(true);
+                  formQualityCheck.setFieldsValue(purchaseOrder);
+                  formQualityCheck.setFieldValue(
+                    "qualityControlReportDetails",
+                    purchaseOrder.listDetails
+                  );
+                }}
+              >
+                Create phiếu kiểm định
+              </Button>
+            ),
         ]}
       >
         <p>
@@ -815,7 +905,19 @@ export const ManageRequest = () => {
           </div>
         )}
 
-        <Table columns={goodColums} dataSource={requestDetail?.good} />
+        {requestDetail?.good?.lenght > 0 && (
+          <Table columns={goodColums} dataSource={requestDetail?.good} />
+        )}
+
+        {requestDetail?.listQualityControlReportData[0] && (
+          <Table
+            columns={materialColumns}
+            dataSource={
+              requestDetail?.listQualityControlReportData[0]
+                ?.qualityControlReportDetails
+            }
+          />
+        )}
       </Modal>
 
       <Modal
@@ -985,6 +1087,264 @@ export const ManageRequest = () => {
         onCancel={() => setShowPO(null)}
       >
         <OrderDetailByPhase POPhase={showPO} />
+      </Modal>
+
+      <Modal
+        open={openCheckQuality}
+        width={1000}
+        onCancel={() => {
+          setOpenCheckQuality(false);
+        }}
+        onOk={() => formQualityCheck.submit()}
+      >
+        <Form
+          labelCol={{
+            span: 24,
+          }}
+          form={formQualityCheck}
+          onFinish={onFinishQualityCheck}
+          initialValues={{
+            phase: 0,
+            conclude: 0,
+          }}
+        >
+          <Row gutter={12}>
+            <Col span={8}>
+              <Form.Item name="uri" label="URI">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="poCode" label="PO Code">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="poFax" label="PO Fax">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="supplier" label="Supplier">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="licensePlate" label="License Plate">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="conclude" label="Conclude">
+                <Select
+                  options={[
+                    { value: 0, label: "Obtain" },
+                    { value: 1, label: "NotAchieved" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="inspectionDate" label="Inspection Date">
+                <DatePicker
+                  showTime
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="receiptDate" label="Receipt Date">
+                <DatePicker
+                  showTime
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="phase" label="Phase">
+                <Input type="number" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item name="comments" label="Comments">
+            <Input.TextArea />
+          </Form.Item>
+          <Form.List name="qualityControlReportDetails">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, fieldKey, ...restField }) => (
+                  <Form.Item
+                    {...restField}
+                    key={key}
+                    label={`Material ${name + 1}`}
+                  >
+                    <Input.Group compact>
+                      <Form.Item
+                        name={[name, "materialName"]}
+                        noStyle
+                        rules={[
+                          {
+                            required: true,
+                            message: "Material name is required",
+                          },
+                        ]}
+                      >
+                        <Input
+                          style={{ width: "40%" }}
+                          placeholder="Material Name"
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        name={[name, "quantity"]}
+                        noStyle
+                        rules={[
+                          { required: true, message: "Quantity is required" },
+                        ]}
+                      >
+                        <Input
+                          style={{ width: "20%" }}
+                          type="number"
+                          placeholder="Quantity"
+                        />
+                      </Form.Item>
+                      <Form.Item
+                        name={[name, "unit"]}
+                        noStyle
+                        rules={[
+                          { required: true, message: "Unit is required" },
+                        ]}
+                      >
+                        <Input style={{ width: "30%" }} placeholder="Unit" />
+                      </Form.Item>
+                      <Button danger type="link" onClick={() => remove(name)}>
+                        Remove
+                      </Button>
+                    </Input.Group>
+                  </Form.Item>
+                ))}
+                <Form.Item>
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    style={{ width: "100%" }}
+                  >
+                    Add Material
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        open={currentCreateQR}
+        onOk={() => {
+          formQR.submit();
+        }}
+        onCancel={() => {
+          formQR.resetFields();
+          setCurrentCreateQR(null);
+        }}
+      >
+        <Form
+          labelCol={{
+            span: 24,
+          }}
+          form={formQR}
+          onFinish={onFinishQR}
+          initialValues={{ isQualityChecked: 0 }}
+        >
+          <Row gutter={[12, 12]}>
+            <Col span={8}>
+              <Form.Item name="length" label="Length">
+                <InputNumber
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="lengthUnit" label="Length Unit">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="width" label="Width">
+                <InputNumber
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="widthUnit" label="Width Unit">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="grossWeight" label="Gross Weight">
+                <InputNumber
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="grossWeightUnit" label="Gross Weight Unit">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="netWeight" label="Net Weight">
+                <InputNumber
+                  style={{
+                    width: "100%",
+                  }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="netWeightUnit" label="Net Weight Unit">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="attribute" label="Attribute">
+                <Input />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="isQualityChecked" label="Quality Checked">
+                <Select>
+                  <Select.Option value={0}>No</Select.Option>
+                  <Select.Option value={1}>Yes</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item name="color" label="Color">
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item name="image" label="Image URL">
+            <Input />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

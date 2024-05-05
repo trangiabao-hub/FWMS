@@ -19,7 +19,8 @@ export const Login = () => {
         response.data.data.role === "Admin" ||
         response.data.data.role === "Purchasing staff" ||
         response.data.data.role === "Manage warehouse department" ||
-        response.data.data.role === "Warehouse staff"
+        response.data.data.role === "Warehouse staff" ||
+        response.data.data.role === "Quality inspection staff"
       ) {
         navigate("/dashboard");
       }
