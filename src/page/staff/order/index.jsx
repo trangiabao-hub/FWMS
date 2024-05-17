@@ -301,9 +301,9 @@ export const OrderDetail = ({ orderId }) => {
             label:
               index === 0
                 ? "PURCHASE ORDER  "
-                : `Phase ${item.phase} (${dayjs(item.expectedDate).format(
-                    "DD/MM/YYYY"
-                  )})`,
+                : `Phase ${item.phase === 0 ? " bù" : item.phase} (${dayjs(
+                    item.expectedDate
+                  ).format("DD/MM/YYYY")})`,
             children: (
               <>
                 <Descriptions title="Order Details">

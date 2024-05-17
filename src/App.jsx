@@ -11,6 +11,7 @@ import { ManageCategory } from "./page/admin/category";
 import { ManageMaterial } from "./page/admin/material";
 import { ManageRequest } from "./page/staff/request";
 import { ManageProduct } from "./page/staff/product";
+import InventoryPlan from "./page/inventory-plan";
 function App() {
   const router = createBrowserRouter([
     {
@@ -36,6 +37,7 @@ function App() {
         { path: "material", element: <ManageMaterial /> },
         { path: "request", element: <ManageRequest /> },
         { path: "product", element: <ManageProduct /> },
+        { path: "inventory", element: <InventoryPlan /> },
       ],
     },
   ]);

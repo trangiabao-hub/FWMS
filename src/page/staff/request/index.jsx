@@ -54,7 +54,7 @@ export const ManageRequest = () => {
   const [openCheckQuality, setOpenCheckQuality] = useState(false);
 
   const [currentCreateQR, setCurrentCreateQR] = useState(null);
-  const [currentQuality, setCurrentQuantity] = useState(null);
+  const [loadUser, setLoadUser] = useState(true);
 
   const [formQR] = useForm();
 
@@ -114,9 +114,15 @@ export const ManageRequest = () => {
           const staffResponse = await api.get(
             `/request/${item.id}/request-detail`
           );
+          const poResponse = await api.get(
+            `request/${item.id}/relate-infomation/${item.relatedInformation}`
+          );
           const good = staffResponse.data.data[0].listGoodReceiptNote;
           const listQualityControlReportData =
             staffResponse.data.data[0].listQualityControlReportData;
+
+          const listQualityControlReportDataFull =
+            staffResponse.data.data[0].listQualityControlReportData[0];
           console.log(good);
           const staff = staffResponse.data.data[0].listMembers;
           const warehouseResponse = await api.get(
@@ -129,6 +135,8 @@ export const ManageRequest = () => {
             warehouse,
             good,
             listQualityControlReportData,
+            listQualityControlReportDataFull,
+            po: poResponse.data.data[0],
           };
         })
       );
@@ -150,9 +158,11 @@ export const ManageRequest = () => {
     }
   };
 
-  const fetchUser = async () => {
-    const response = await api.get(`/user/warehouse-staff`);
+  const fetchUser = async (url) => {
+    setLoadUser(true);
+    const response = await api.get(url ? url : `/user/warehouse-staff`);
     setUsers(response.data.data);
+    setLoadUser(false);
   };
 
   const fetchOrder = async (page = 0) => {
@@ -170,15 +180,22 @@ export const ManageRequest = () => {
     serOrders(order);
   };
 
-  const fetchOrderDetail = async () => {
+  const fetchOrderDetail = async (id) => {
     setOrderDetail([]);
     const response = await api.get(
-      `/purchase-order-phase/${selectedPO}/purchase-order-phase-details`
+      `/purchase-order-phase/${
+        id ? id : selectedPO
+      }/purchase-order-phase-details`
     );
+    if (id) {
+      return response.data.data;
+    }
     setOrderDetail(response.data.data);
+    console.log(response.data.data);
   };
 
   useEffect(() => {
+    console.log(selectedPO);
     if (selectedPO) {
       fetchOrderDetail();
     }
@@ -439,6 +456,25 @@ export const ManageRequest = () => {
       title: "Title",
       dataIndex: "title",
       key: "title",
+      filters: [
+        {
+          text: "Quality Control Request",
+          value: "QualityControlRequest",
+        },
+        {
+          text: "Order Confirmation Request",
+          value: "OrderConfirmationRequest",
+        },
+        {
+          text: "Outbound Shipment Request",
+          value: "OutboundShipmentRequest",
+        },
+        {
+          text: "Inbound Shipment Request",
+          value: "InboundShipmentRequest",
+        },
+      ],
+      onFilter: (value, record) => record.title === value,
     },
     {
       title: "Description",
@@ -512,6 +548,13 @@ export const ManageRequest = () => {
                 type="primary"
                 onClick={() => {
                   setSelectedRequest(record.id);
+                  if (record.title === "QualityControlRequest") {
+                    fetchUser(
+                      "/role/9fd3d274-1a09-42c8-9f52-e435406d071d/users"
+                    );
+                  } else {
+                    fetchUser();
+                  }
                   setAssignStaff(true);
                 }}
               >
@@ -677,9 +720,9 @@ export const ManageRequest = () => {
                     console.log(item);
                     return {
                       value: item.phase,
-                      label: `Phase ${item.phase} (${dayjs(
-                        item.expectedDate
-                      ).format("DD/MM/YYYY")})`,
+                      label: `Phase ${
+                        item.phase === 0 ? "bù" : item.phase
+                      } (${dayjs(item.expectedDate).format("DD/MM/YYYY")})`,
                     };
                   })}
                 />
@@ -739,6 +782,7 @@ export const ManageRequest = () => {
         }}
       >
         <Table
+          loading={loadUser}
           columns={userColumns}
           dataSource={users}
           onChange={handleUserChange}
@@ -905,17 +949,25 @@ export const ManageRequest = () => {
           </div>
         )}
 
-        {requestDetail?.good?.lenght > 0 && (
+        {requestDetail?.good?.length > 0 && (
           <Table columns={goodColums} dataSource={requestDetail?.good} />
         )}
 
         {requestDetail?.listQualityControlReportData[0] && (
-          <Table
-            columns={materialColumns}
-            dataSource={
+          // <Table
+          //   columns={materialColumns}
+          //   dataSource={
+          //     requestDetail?.listQualityControlReportData[0]
+          //       ?.qualityControlReportDetails
+          //   }
+          // />
+          <QualityTable
+            data={
               requestDetail?.listQualityControlReportData[0]
                 ?.qualityControlReportDetails
             }
+            detail={requestDetail}
+            openModal={setCurrentCreateQR}
           />
         )}
       </Modal>
@@ -1347,5 +1399,124 @@ export const ManageRequest = () => {
         </Form>
       </Modal>
     </div>
+  );
+};
+
+const QualityTable = ({ data, detail, openModal }) => {
+  console.log(detail);
+  return (
+    <table
+      border={1}
+      style={{
+        width: "fit-content",
+        overflow: "auto",
+        borderCollapse: "collapse",
+      }}
+    >
+      <tr>
+        <th colSpan="3">
+          PO: <strong>{detail.relatedInformation}</strong>
+        </th>
+        <th colSpan="4">
+          Supplier:{" "}
+          <strong>{detail.listQualityControlReportDataFull.supplier}</strong>
+        </th>
+        <th colSpan="4">
+          Inspection date:
+          <strong>
+            {dayjs(
+              detail.listQualityControlReportDataFull.inspectionDate
+            ).format("DD/MM/YYYY")}
+          </strong>
+        </th>
+        <th rowSpan={4} style={{ textAlign: "center" }}>
+          Action
+        </th>
+      </tr>
+      <tr>
+        <th colSpan="3">
+          POFAX:{" "}
+          <strong>{detail.listQualityControlReportDataFull.poFax}</strong>
+        </th>
+        <th colSpan="4">
+          Liscence Plate{" "}
+          <strong>
+            {detail.listQualityControlReportDataFull.licensePlate}
+          </strong>
+        </th>
+        <th colSpan="4">
+          Receipt date:{" "}
+          <strong>
+            {dayjs(detail.listQualityControlReportDataFull.receiptDate).format(
+              "DD/MM/YYYY"
+            )}
+          </strong>
+        </th>
+      </tr>
+      <tr>
+        <td rowSpan="2" colSpan="1">
+          No
+        </td>
+        <td rowSpan="2">MaterialName</td>
+        <td rowSpan="2">Quantity</td>
+        <td rowSpan="2">Unit</td>
+        <td rowSpan="2">Number of check</td>
+        <td rowSpan="2">Inspection Method</td>
+        <td rowSpan="2">Size</td>
+        <td rowSpan="2">Quantitative</td>
+        <td rowSpan="2">External Inspection</td>
+        <td rowSpan="1" colSpan="2">
+          Evaluate
+        </td>
+      </tr>
+      <tr>
+        <td>Quantity achieved</td>
+        <td>Quantity not reached</td>
+      </tr>
+      {/* eslint-disable-next-line react/prop-types */}
+      {data.map((item, index) => {
+        return (
+          // eslint-disable-next-line react/jsx-key
+          <tr>
+            <td>{index + 1}</td>
+            <td>{item.materialName}</td>
+            <td>{item.quantity}</td>
+            <td>{item.unit}</td>
+            <td>{item.numberOfCheck}</td>
+            <td>{item.inspectionMethod}</td>
+            <td>{item.size}</td>
+            <td>{item.quantitative}</td>
+            <td>{item.externalInspection}</td>
+            <td>{item.quantityAchieved}</td>
+            <td>{item.quantityNotReached}</td>
+            <td>
+              {item?.qrCode ? (
+                <Image src={item?.qrCode.image} width={100} />
+              ) : (
+                <Button onClick={() => openModal(item.materialId)}>
+                  Create QR
+                </Button>
+              )}
+            </td>
+          </tr>
+        );
+      })}
+      <tr>
+        <td colSpan="2">Conclude: </td>
+        <td colSpan="4">Achieved</td>
+        <td colSpan="6">Not Reached</td>
+      </tr>
+      <tr>
+        <td colSpan="8" rowSpan="2">
+          Note: {detail.description}
+        </td>
+        <td colSpan="4">Inspectation Staff</td>
+      </tr>
+      <tr>
+        <td colSpan="3" rowSpan="2">
+          Empty
+        </td>
+      </tr>
+    </table>
   );
 };

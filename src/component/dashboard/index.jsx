@@ -133,6 +133,11 @@ const Dashboard = () => {
             icon: <PullRequestOutlined />,
             label: <Link to={"request"}>Manage request</Link>,
           },
+          {
+            key: "inventory",
+            icon: <PullRequestOutlined />,
+            label: <Link to={"inventory"}>Manage inventory plan</Link>,
+          },
         ]);
       }
     }
