@@ -87,12 +87,6 @@ function InventoryPlan() {
 
   const columns = [
     {
-      title: "URI",
-      dataIndex: "uri",
-      key: "uri",
-      render: (value) => value && <Link to={value}>Link</Link>,
-    },
-    {
       title: "Name",
       dataIndex: "name",
       key: "name",
@@ -120,16 +114,6 @@ function InventoryPlan() {
       title: "End Date",
       dataIndex: "endDate",
       key: "endDate",
-    },
-    {
-      title: "Warehouse ID",
-      dataIndex: "warehouseId",
-      key: "warehouseId",
-    },
-    {
-      title: "User ID",
-      dataIndex: "userId",
-      key: "userId",
     },
     {
       title: "Date Created",
