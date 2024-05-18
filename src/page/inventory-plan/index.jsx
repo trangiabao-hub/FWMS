@@ -26,6 +26,21 @@ function InventoryPlan() {
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const { RangePicker } = DatePicker;
+  const [reportDetail, setReportDetail] = useState();
+
+  const fetchReport = async () => {
+    const response = await api.get(`/inventory-report/${currentPlanReport}`);
+    console.log(response.data.data);
+    setReportDetail(response.data.data);
+    fetchInventoryPlan();
+    toast.success("Successfully created inventory report");
+  };
+
+  useEffect(() => {
+    if (currentPlanReport) {
+      fetchReport();
+    }
+  }, [currentPlanReport]);
 
   const fetchInventoryPlan = async () => {
     setLoading(true);
@@ -45,8 +60,10 @@ function InventoryPlan() {
     console.log(values);
     const response = await api.post(
       `/inventory-report/${currentPlanReport}`,
-      values
+      values.materials
     );
+    formReport.resetFields();
+    setCurrentPlanReport(null);
     console.log(response);
   };
 
@@ -134,11 +151,21 @@ function InventoryPlan() {
       title: "Action",
       dataIndex: "id",
       key: "id",
-      render: (value) => (
+      render: (value, record) => (
         <>
-          <Button type="primary" onClick={() => setCurrentPlanReport(value)}>
-            Create report
-          </Button>
+          {record.uri ? (
+            <Button
+              onClick={() => {
+                window.open(record.uri, "_blank");
+              }}
+            >
+              Download
+            </Button>
+          ) : (
+            <Button type="primary" onClick={() => setCurrentPlanReport(value)}>
+              Create report
+            </Button>
+          )}
         </>
       ),
     },
