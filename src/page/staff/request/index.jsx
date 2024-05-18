@@ -71,6 +71,8 @@ export const ManageRequest = () => {
 
       formQR.resetFields();
       setCurrentCreateQR(null);
+      setRequestDetail(null);
+      fetchRequest();
       console.log(response);
       toast.success("Successfully created QR");
     } catch (err) {
@@ -92,6 +94,8 @@ export const ManageRequest = () => {
       console.log({ ...requestDetail, status: "Done", good });
       setRequestDetail({ ...requestDetail, status: "Done", good });
       fetchOrderDetail();
+      setRequestDetail(null);
+      fetchRequest();
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);
@@ -224,6 +228,8 @@ export const ManageRequest = () => {
     form.resetFields();
     setShowModal(false);
     selectedRequest({ ...selectedRequest, status: "Done" });
+    setRequestDetail(null);
+    fetchRequest();
   };
 
   const fetchPurchaseOrder = async () => {
